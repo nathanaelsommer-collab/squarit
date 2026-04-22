@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SquarIt">
+<meta name="theme-color" content="#08111e">
+<title>SQUAR-IT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08111e;--surface:#0f1e30;--panel:#132030;--border:#1a3050;--border2:#204060;
+  --amber:#f59e0b;--sky:#38bdf8;--green:#4ade80;--red:#f87171;
+  --text:#dde8f5;--muted:#4a6a8a;--muted2:#2a4a6a;
+  --mono:'DM Mono',monospace;--disp:'Bebas Neue',sans-serif;--sans:'DM Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;min-height:-webkit-fill-available;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(56,189,248,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,.025) 1px,transparent 1px);background-size:28px 28px;pointer-events:none;}
+.app{position:relative;max-width:430px;margin:0 auto;padding-bottom:48px;}
+header{padding:52px 20px 14px;display:flex;align-items:center;gap:12px;}
+.logo-box{width:44px;height:44px;background:rgba(245,158,11,.1);border:1.5px solid rgba(245,158,11,.4);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo-box svg{width:26px;height:26px;}
+.logo-text h1{font-family:var(--disp);font-size:32px;letter-spacing:3px;color:var(--amber);line-height:1;}
+.logo-text p{font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+.section-label{padding:6px 20px;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);display:flex;align-items:center;gap:8px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+/* Diagram */
+.diagram-wrap{margin:0 14px 12px;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;padding:12px 8px 8px;}
+#diag-svg{width:100%;height:auto;display:block;}
+.diag-legend{display:flex;gap:12px;padding:8px 4px 2px;flex-wrap:wrap;}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);color:var(--muted);}
+.leg-dot{width:12px;height:3px;border-radius:2px;flex-shrink:0;}
+/* Inputs */
+.mrow{margin:0 14px 10px;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;background:var(--surface);transition:border-color .2s;}
+.mrow.derived{border-color:rgba(56,189,248,.5);}
+.mrow-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 6px;gap:8px;}
+.mrow-title{display:flex;align-items:center;gap:8px;}
+.mrow-icon{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;font-family:var(--mono);}
+.mrow-icon.a{background:rgba(245,158,11,.12);color:var(--amber);}
+.mrow-icon.b{background:rgba(74,222,128,.1);color:var(--green);}
+.mrow-icon.c{background:rgba(56,189,248,.1);color:var(--sky);}
+.mrow-name{font-size:13px;font-weight:600;color:var(--text);}
+.mrow-desc{font-size:10px;color:var(--muted);}
+.theory-badge{font-size:9px;font-family:var(--mono);padding:3px 8px;border-radius:20px;white-space:nowrap;opacity:0;transition:opacity .3s;flex-shrink:0;background:rgba(56,189,248,.12);color:var(--sky);border:1px solid rgba(56,189,248,.25);}
+.theory-badge.show{opacity:1;}
+.fields{display:grid;padding:6px 10px 6px;gap:8px;}
+.fields.two{grid-template-columns:1fr 1fr;}
+.fields.three{grid-template-columns:1fr 1fr 1fr;}
+.field{display:flex;flex-direction:column;gap:3px;}
+.field label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-family:var(--mono);padding-left:2px;}
+.field input{background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:20px;font-weight:500;padding:9px 10px;width:100%;outline:none;-webkit-appearance:none;transition:border-color .15s,background .15s;}
+.field input:focus{border-color:var(--amber);background:rgba(245,158,11,.04);}
+.field input.has-value{color:var(--amber);}
+.field input::placeholder{color:var(--muted2);font-size:15px;}
+.field-unit{font-size:9px;text-align:right;color:var(--muted2);font-family:var(--mono);padding-right:2px;}
+.theory-panel{margin:2px 10px 8px;padding:10px 12px;background:rgba(56,189,248,.05);border:1px solid rgba(56,189,248,.15);border-radius:8px;display:none;animation:fadeIn .25s ease;}
+.theory-panel.show{display:block;}
+.theory-panel-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(56,189,248,.6);margin-bottom:4px;font-family:var(--mono);}
+.theory-value{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--sky);line-height:1.1;}
+.theory-sub{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
+.divider{margin:14px 20px 4px;height:1px;background:linear-gradient(to right,transparent,var(--border),transparent);}
+/* Result */
+.check-section{margin:0 14px 12px;}
+.result-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;display:none;animation:slideUp .3s cubic-bezier(.16,1,.3,1);}
+.result-card.show{display:block;}
+@keyframes slideUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.result-status{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);}
+.status-pip{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.status-pip.ok{background:var(--green);box-shadow:0 0 8px rgba(74,222,128,.5);}
+.status-pip.err{background:var(--red);box-shadow:0 0 8px rgba(248,113,113,.5);}
+.status-text{font-size:13px;color:var(--text);font-weight:500;}
+.status-sub{font-size:11px;color:var(--muted);}
+/* Pivot note */
+.pivot-note{padding:10px 16px 8px;border-bottom:1px solid var(--border);background:rgba(56,189,248,.03);}
+.pivot-note-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--sky);margin-bottom:2px;font-family:var(--mono);}
+.pivot-note-txt{font-size:11px;color:var(--muted);line-height:1.5;}
+/* Two-option grid */
+.opt-grid{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border);}
+.opt-cell{padding:16px 14px 12px;}
+.opt-cell:first-child{border-right:1px solid var(--border);}
+.opt-num{font-size:9px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;}
+.opt-stake{font-size:11px;font-weight:700;margin-bottom:2px;}
+.opt-stake.tl{color:var(--amber);}
+.opt-stake.br{color:var(--green);}
+.opt-leg{font-size:10px;color:var(--muted);margin-bottom:10px;}
+.opt-distance{font-family:var(--disp);font-size:40px;line-height:1;color:var(--red);}
+.opt-distance.ok{color:var(--green);font-size:22px;padding-top:4px;}
+.opt-dir{margin-top:6px;font-size:11px;font-family:var(--mono);font-weight:600;padding:4px 9px;border-radius:6px;display:inline-block;}
+.opt-dir.in{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--red);}
+.opt-dir.out{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--red);}
+.opt-dir.ok{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green);}
+.opt-dec{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:4px;}
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;}
+.stat{padding:11px 14px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+.stat:nth-child(even){border-right:none;}
+.stat:nth-last-child(-n+2){border-bottom:none;}
+.stat-label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:3px;}
+.stat-val{font-family:var(--mono);font-size:13px;color:var(--text);}
+.stat-val.amber{color:var(--amber);}
+.stat-val.sky{color:var(--sky);}
+/* Buttons */
+.btn-row{margin:12px 14px 0;display:flex;gap:10px;}
+.btn-calc{flex:1;background:var(--amber);color:#08111e;border:none;border-radius:12px;font-family:var(--disp);font-size:22px;letter-spacing:2px;padding:14px;cursor:pointer;box-shadow:0 4px 20px rgba(245,158,11,.25);transition:transform .1s;position:relative;overflow:hidden;}
+.btn-calc::after{content:'';position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.18) 0%,transparent 55%);}
+.btn-calc:active{transform:scale(.97);}
+.btn-clear{background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:12px;font-family:var(--sans);font-size:13px;padding:14px 18px;cursor:pointer;}
+.btn-clear:active{color:var(--text);}
+/* Math */
+.math-wrap{margin:12px 14px 0;border:1px solid var(--border);border-radius:12px;overflow:hidden;display:none;}
+.math-wrap.show{display:block;}
+.math-toggle{width:100%;background:var(--surface);border:none;color:var(--muted);font-family:var(--sans);font-size:12px;padding:11px 16px;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+.math-body{display:none;background:var(--panel);border-top:1px solid var(--border);padding:12px 16px;}
+.math-body.open{display:block;}
+.step{padding:8px 0;border-bottom:1px solid var(--border);}
+.step:last-child{border-bottom:none;}
+.step-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px;}
+.step-eq{font-family:var(--mono);font-size:11px;color:var(--sky);line-height:1.7;}
+.step-eq .ra{color:var(--amber);font-weight:500;}
+.step-eq .rg{color:var(--green);font-weight:500;}
+.err-msg{margin:10px 14px 0;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.2);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--red);display:none;}
+.err-msg.show{display:block;}
+footer{text-align:center;padding:20px 20px 0;font-size:10px;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase;}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="logo-box">
+    <svg viewBox="0 0 26 26" fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="5" width="15" height="16" rx="1"/>
+      <line x1="3" y1="21" x2="18" y2="5" stroke-dasharray="3,2"/>
+      <line x1="20" y1="3" x2="23" y2="6"/><line x1="23" y1="3" x2="20" y2="6"/>
+    </svg>
+  </div>
+  <div class="logo-text">
+    <h1>SQUAR-IT</h1>
+    <p>Pythagorean Field Calculator</p>
+  </div>
+</header>
+
+<div class="section-label">Live Scale Diagram</div>
+<div class="diagram-wrap">
+  <svg id="diag-svg" viewBox="0 0 360 250" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div class="diag-legend" id="diag-legend"></div>
+</div>
+
+<div class="section-label">Enter any two — third calculates live</div>
+
+<div class="mrow" id="row-a">
+  <div class="mrow-header">
+    <div class="mrow-title"><div class="mrow-icon a">A</div>
+      <div><div class="mrow-name">Side A — Long Leg</div><div class="mrow-desc">The longer side of your rectangle</div></div>
+    </div>
+    <div class="theory-badge" id="badge-a">THEORETICAL</div>
+  </div>
+  <div class="fields two">
+    <div class="field"><label>Feet</label><input type="number" id="a_ft" inputmode="decimal" placeholder="400" min="0" oninput="onInput()"><div class="field-unit">ft</div></div>
+    <div class="field"><label>Inches</label><input type="number" id="a_in" inputmode="decimal" placeholder="0" min="0" max="11" oninput="onInput()"><div class="field-unit">in</div></div>
+  </div>
+  <div class="theory-panel" id="theory-a">
+    <div class="theory-panel-label">Theoretical A from B &amp; C — √(C²−B²)</div>
+    <div class="theory-value" id="theory-a-val"></div><div class="theory-sub" id="theory-a-sub"></div>
+  </div>
+</div>
+
+<div class="mrow" id="row-b">
+  <div class="mrow-header">
+    <div class="mrow-title"><div class="mrow-icon b">B</div>
+      <div><div class="mrow-name">Side B — Short Leg</div><div class="mrow-desc">The shorter side of your rectangle</div></div>
+    </div>
+    <div class="theory-badge" id="badge-b">THEORETICAL</div>
+  </div>
+  <div class="fields two">
+    <div class="field"><label>Feet</label><input type="number" id="b_ft" inputmode="decimal" placeholder="300" min="0" oninput="onInput()"><div class="field-unit">ft</div></div>
+    <div class="field"><label>Inches</label><input type="number" id="b_in" inputmode="decimal" placeholder="0" min="0" max="11" oninput="onInput()"><div class="field-unit">in</div></div>
+  </div>
+  <div class="theory-panel" id="theory-b">
+    <div class="theory-panel-label">Theoretical B from A &amp; C — √(C²−A²)</div>
+    <div class="theory-value" id="theory-b-val"></div><div class="theory-sub" id="theory-b-sub"></div>
+  </div>
+</div>
+
+<div class="mrow" id="row-c">
+  <div class="mrow-header">
+    <div class="mrow-title"><div class="mrow-icon c">C</div>
+      <div><div class="mrow-name">Diagonal — Hypotenuse</div><div class="mrow-desc">Measured corner-to-corner</div></div>
+    </div>
+    <div class="theory-badge" id="badge-c">THEORETICAL</div>
+  </div>
+  <div class="fields three">
+    <div class="field"><label>Feet</label><input type="number" id="c_ft" inputmode="decimal" placeholder="500" min="0" oninput="onInput()"><div class="field-unit">ft</div></div>
+    <div class="field"><label>Inches</label><input type="number" id="c_in" inputmode="decimal" placeholder="4" min="0" max="11" oninput="onInput()"><div class="field-unit">in</div></div>
+    <div class="field"><label>Sixteenths</label><input type="number" id="c_16" inputmode="decimal" placeholder="0" min="0" max="15" oninput="onInput()"><div class="field-unit">¹⁄₁₆"</div></div>
+  </div>
+  <div class="theory-panel" id="theory-c">
+    <div class="theory-panel-label">Theoretical C from A &amp; B — √(A²+B²)</div>
+    <div class="theory-value" id="theory-c-val"></div><div class="theory-sub" id="theory-c-sub"></div>
+  </div>
+</div>
+
+<div class="divider"></div>
+<div class="section-label">Both options pivot at TR — pick one stake to move</div>
+
+<div class="check-section">
+  <div class="result-card" id="result-card">
+    <div class="result-status" id="res-status"></div>
+
+    <div class="pivot-note">
+      <div class="pivot-note-lbl">⊙ Pivot = TR stake (stays fixed)</div>
+      <div class="pivot-note-txt">TR is the shared pivot for both options. Choose which diagonal-end stake to move — TL or BR — by swinging its leg like a compass arc.</div>
+    </div>
+
+    <div class="opt-grid">
+      <!-- Option 1: TL stake, swing Side A around TR -->
+      <div class="opt-cell">
+        <div class="opt-num">Option 1</div>
+        <div class="opt-stake tl">▸ Move TL Stake</div>
+        <div class="opt-leg">Swing Side A around TR<br>Radius = Side A length</div>
+        <div class="opt-distance" id="o1-dist">—</div>
+        <div class="opt-dir" id="o1-dir"></div>
+        <div class="opt-dec" id="o1-dec"></div>
+      </div>
+      <!-- Option 2: BR stake, swing Side B around TR -->
+      <div class="opt-cell">
+        <div class="opt-num">Option 2</div>
+        <div class="opt-stake br">▸ Move BR Stake</div>
+        <div class="opt-leg">Swing Side B around TR<br>Radius = Side B length</div>
+        <div class="opt-distance" id="o2-dist">—</div>
+        <div class="opt-dir" id="o2-dir"></div>
+        <div class="opt-dec" id="o2-dec"></div>
+      </div>
+    </div>
+
+    <div class="stats-grid" id="res-stats"></div>
+  </div>
+</div>
+
+<div class="btn-row">
+  <button class="btn-calc" onclick="calculate()">CALCULATE</button>
+  <button class="btn-clear" onclick="clearAll()">Clear</button>
+</div>
+<div class="err-msg" id="err-msg"></div>
+
+<div class="math-wrap" id="math-wrap">
+  <button class="math-toggle" onclick="toggleMath()">
+    <span>Show detailed math steps</span><span id="chev">▼</span>
+  </button>
+  <div class="math-body" id="math-body"></div>
+</div>
+
+<footer>3-4-5 Pythagorean Field Tool · Works Offline</footer>
+</div>
+
+<script>
+// ── Helpers ──────────────────────────────────────────────────────
+const $=id=>document.getElementById(id);
+function toFt(ft,ins,six){return(parseFloat(ft)||0)+(parseFloat(ins)||0)/12+(parseFloat(six)||0)/192;}
+function hasVal(k){
+  if(k==='c')return $('c_ft').value.trim()!==''||$('c_in').value.trim()!==''||$('c_16').value.trim()!=='';
+  return $(k+'_ft').value.trim()!==''||$(k+'_in').value.trim()!=='';
+}
+function getVal(k){
+  if(k==='c')return toFt($('c_ft').value,$('c_in').value,$('c_16').value);
+  return toFt($(k+'_ft').value,$(k+'_in').value,0);
+}
+function gcd(a,b){return b===0?a:gcd(b,a%b);}
+function decompose(f){
+  if(!isFinite(f)||f<0)return null;
+  const ti=f*12,ft=Math.floor(f),ri=ti-ft*12,wi=Math.floor(ri),fr=ri-wi;
+  let n=Math.round(fr*32),d=32;
+  if(n===d)return decompose(ft+(wi+1)/12);
+  if(n>0){const g=gcd(n,d);n/=g;d/=g;}
+  return{ft,wi,n,d};
+}
+function fmt(f){
+  const dc=decompose(f);if(!dc)return'—';
+  const{ft,wi,n,d}=dc;
+  let s=ft+' ft';
+  if(wi>0||n>0){s+=' '+wi;if(n>0)s+=' '+n+'\u2044'+d;s+='"';}
+  return s;
+}
+function fmtIn(f){
+  const tot=Math.abs(f)*12,w=Math.floor(tot),fr=tot-w;
+  let n=Math.round(fr*32),d=32;
+  if(n===d)return fmtIn((w+1)/12);
+  if(n>0){const g=gcd(n,d);n/=g;d/=g;}
+  return w+(n>0?' '+n+'\u2044'+d:'')+'"';
+}
+
+// ── Core: both options pivot at TR ───────────────────────────────
+// Diagonal TL→BR. TR is shared pivot.
+// Option 1: swing Side A (TL end free, radius=A). 
+// Option 2: swing Side B (BR end free, radius=B).
+//
+// Geometry: when either leg swings by Δθ around TR,
+//   C² = Cp² − 2AB·sin(Δθ)   [closing: Δθ>0 shortens diagonal]
+//   C² = Cp² + 2AB·sin(Δθ)   [opening: Δθ>0 lengthens diagonal]
+//
+// To go from C1 to Cp:
+//   sin(Δθ) = |C1²−Cp²| / (2AB)
+//   Δθ = arcsin(...)
+//   chord (stake linear move) = 2r·sin(Δθ/2)
+//
+// Direction:
+//   C1 > Cp (too long) → close angle (swing IN) to shorten
+//   C1 < Cp (too short)→ open  angle (swing OUT) to lengthen
+
+function computeSwing(A,B,C1){
+  const Cp=Math.sqrt(A*A+B*B);
+  const sinDth=Math.abs(C1*C1-Cp*Cp)/(2*A*B);
+  if(sinDth>1)return null;
+  const dth=Math.asin(sinDth);
+  return{
+    Cp,
+    dth,
+    moveA: 2*A*Math.sin(dth/2),   // Option 1: TL moves, radius=A
+    moveB: 2*B*Math.sin(dth/2),   // Option 2: BR moves, radius=B
+    tooLong: C1>Cp
+  };
+}
+
+// ── SVG Diagram ──────────────────────────────────────────────────
+// Layout (screen coords, y↓):
+//   TL(ox, oy) ──── Side A ──── TR(ox+rw, oy)
+//                                    |
+//                                  Side B
+//                                    |
+//   BL(ox, oy+rh) ─────────── BR(ox+rw, oy+rh)
+//
+// Diagonal = TL → BR
+// Both arcs pivot at TR.
+// Option 1 arc: TL swings around TR. 
+//   TL is currently at angle π from TR (pointing left).
+//   "IN" (too long): TL swings clockwise → downward → closing angle at TR
+//   "OUT" (too short): TL swings counter-clockwise → upward → opening angle
+// Option 2 arc: BR swings around TR.
+//   BR is currently at angle π/2 from TR (pointing down, since y↓).
+//   "IN" (too long): BR swings toward TL → counter-clockwise → angle toward π
+//   "OUT" (too short): BR swings away from TL → clockwise → angle toward 0
+
+const SW=360,SH=250;
+const M={t:36,r:56,b:20,l:32};
+
+function nsel(tag,at){
+  const el=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  Object.entries(at||{}).forEach(([k,v])=>el.setAttribute(k,v));
+  return el;
+}
+function svgT(x,y,s,at){
+  const el=nsel('text',{x,y,'text-anchor':'middle','dominant-baseline':'middle',
+    'font-family':'DM Mono,monospace','font-size':'9.5',...at});
+  el.textContent=s;return el;
+}
+function svgL(x1,y1,x2,y2,at){return nsel('line',{x1,y1,x2,y2,...at});}
+function svgR(x,y,w,h,at){return nsel('rect',{x,y,width:w,height:h,...at});}
+function svgP(d,at){return nsel('path',{d,...at});}
+
+function buildDefs(svg){
+  const defs=nsel('defs');
+  // Arrowhead for arc direction
+  const mk=(id,col)=>{
+    const m=nsel('marker',{id,markerWidth:'8',markerHeight:'8',refX:'6',refY:'4',orient:'auto'});
+    m.appendChild(nsel('path',{d:'M0,1 L7,4 L0,7 Z',fill:col}));
+    defs.appendChild(m);
+  };
+  mk('ah-red','#f87171');
+  svg.appendChild(defs);
+}
+
+function stakeBox(svg,x,y,col){
+  const s=5;
+  svg.appendChild(svgR(x-s,y-s,s*2,s*2,
+    {fill:`rgba(${col},.12)`,stroke:`rgb(${col})`,'stroke-width':'1.8',rx:'2'}));
+}
+
+// Draw an SVG arc from angle a1 to a2 around center (cx,cy) with radius r
+// with an arrowhead at the end showing direction of travel
+// Draw a short curved arc arrow AT the stake (sx,sy), swinging around pivot (px,py).
+// The arc starts just beyond the stake along the leg and curves in direction of travel.
+// arcLen controls how many radians of arc to show (visual only, not to scale).
+function drawStakeArc(svg,sx,sy,px,py,tooLong,swingIn,color,label,labelAnchor){
+  // Vector from pivot to stake
+  const dx=sx-px, dy=sy-py;
+  const r=Math.sqrt(dx*dx+dy*dy);
+  const baseAngle=Math.atan2(dy,dx); // current angle of stake from pivot
+
+  // Arc spans a fixed visual angle regardless of actual Δθ
+  const arcSpan=0.32; // radians — enough to show clear curve
+
+  // Start the arc slightly beyond the stake (offset from stake along the arc)
+  const startOffset=0.06; // radians past the stake position
+  const a1=baseAngle+(swingIn?-startOffset:+startOffset);
+  const a2=baseAngle+(swingIn?-(startOffset+arcSpan):+(startOffset+arcSpan));
+
+  const x1=px+r*Math.cos(a1), y1=px+r*Math.sin(a1); // wrong, use py
+  // redo with correct pivot
+  const ax1=px+r*Math.cos(a1), ay1=py+r*Math.sin(a1);
+  const ax2=px+r*Math.cos(a2), ay2=py+r*Math.sin(a2);
+
+  const sweep=swingIn?0:1; // swingIn = counter-clockwise (sweep=0), swingOut = clockwise (sweep=1)
+  svg.appendChild(svgP(`M${ax1},${ay1} A${r},${r} 0 0,${sweep} ${ax2},${ay2}`,
+    {fill:'none',stroke:color,'stroke-width':'2.2','marker-end':'url(#ah-red)'}));
+
+  // Short tick at arc start to show "stake is here"
+  const tn=5;
+  const nx=-Math.sin(a1)*tn, ny=Math.cos(a1)*tn;
+  svg.appendChild(svgL(ax1-nx,ay1-ny,ax1+nx,ay1+ny,{stroke:color,'stroke-width':'1.8'}));
+
+  // Label just past the arrowhead end
+  if(label){
+    const lx=ax2+Math.cos(a2)*16;
+    const ly=ay2+Math.sin(a2)*16;
+    svg.appendChild(svgT(lx,ly,label,{fill:color,'font-size':'9','font-weight':'700',
+      'text-anchor':labelAnchor||'middle'}));
+  }
+}
+
+function drawDiagram(A,B,sw){
+  const svg=$('diag-svg');
+  while(svg.firstChild)svg.removeChild(svg.firstChild);
+  buildDefs(svg);
+
+  if(!A||!B||A<=0||B<=0){
+    svg.appendChild(svgT(SW/2,SH/2,'Enter values above to see scaled diagram',
+      {fill:'#2a4a6a','font-size':'11'}));
+    $('diag-legend').innerHTML='';return;
+  }
+
+  const DW=SW-M.l-M.r, DH=SH-M.t-M.b;
+  const scale=Math.min(DW/A,DH/B)*0.82;
+  const rw=A*scale, rh=B*scale;
+  const ox=M.l+(DW-rw)/2, oy=M.t+(DH-rh)/2;
+
+  // Named corner pixel positions
+  const TL={x:ox,      y:oy};
+  const TR={x:ox+rw,   y:oy};
+  const BR={x:ox+rw,   y:oy+rh};
+  const BL={x:ox,      y:oy+rh};
+
+  // Grid
+  for(let i=1;i<4;i++) svg.appendChild(svgL(ox+rw*i/4,oy,ox+rw*i/4,oy+rh,
+    {stroke:'rgba(56,189,248,.05)','stroke-width':'1'}));
+  for(let i=1;i<3;i++) svg.appendChild(svgL(ox,oy+rh*i/3,ox+rw,oy+rh*i/3,
+    {stroke:'rgba(56,189,248,.05)','stroke-width':'1'}));
+
+  // Rectangle fill + dim border
+  svg.appendChild(svgR(ox,oy,rw,rh,{fill:'rgba(56,189,248,.03)',stroke:'#1a3050',
+    'stroke-width':'1.2','stroke-dasharray':'4,3',rx:'2'}));
+
+  // Left and bottom sides (dim)
+  svg.appendChild(svgL(TL.x,TL.y,BL.x,BL.y,{stroke:'#1e3450','stroke-width':'1.5'}));
+  svg.appendChild(svgL(BL.x,BL.y,BR.x,BR.y,{stroke:'#1e3450','stroke-width':'1.5'}));
+
+  // Side A — amber (TL to TR)
+  svg.appendChild(svgL(TL.x,TL.y,TR.x,TR.y,{stroke:'#f59e0b','stroke-width':'2.5'}));
+  svg.appendChild(svgT((TL.x+TR.x)/2,TL.y-16,'A = '+fmt(A),{fill:'#f59e0b','font-size':'9.5'}));
+
+  // Side B — green (TR to BR)
+  svg.appendChild(svgL(TR.x,TR.y,BR.x,BR.y,{stroke:'#4ade80','stroke-width':'2.5'}));
+  svg.appendChild(svgT(TR.x+6,(TR.y+BR.y)/2,'B = '+fmt(B),
+    {fill:'#4ade80','font-size':'9.5','text-anchor':'start'}));
+
+  // Diagonal TL→BR — dashed sky
+  svg.appendChild(svgL(TL.x,TL.y,BR.x,BR.y,{stroke:'#38bdf8','stroke-width':'1.5',
+    'stroke-dasharray':'6,3',opacity:'.55'}));
+  const da=Math.atan2(BR.y-TL.y,BR.x-TL.x)*180/Math.PI;
+  const cmx=(TL.x+BR.x)/2-10, cmy=(TL.y+BR.y)/2-10;
+  svg.appendChild(svgT(cmx,cmy,'C = '+fmt(sw?sw.Cp:Math.sqrt(A*A+B*B)),
+    {fill:'#38bdf8','font-size':'9',transform:`rotate(${da},${cmx},${cmy})`}));
+
+  // Right-angle mark at TL
+  const cs=10;
+  svg.appendChild(svgL(TL.x+cs,TL.y,TL.x+cs,TL.y+cs,{stroke:'rgba(56,189,248,.45)','stroke-width':'1'}));
+  svg.appendChild(svgL(TL.x,TL.y+cs,TL.x+cs,TL.y+cs,{stroke:'rgba(56,189,248,.45)','stroke-width':'1'}));
+
+  // Pivot indicator at TR — bright ring
+  svg.appendChild(nsel('circle',{cx:TR.x,cy:TR.y,r:'8',fill:'none',
+    stroke:'rgba(56,189,248,.6)','stroke-width':'1.5','stroke-dasharray':'3,2'}));
+  svg.appendChild(svgT(TR.x,TR.y-18,'PIVOT',{fill:'rgba(56,189,248,.6)','font-size':'8',
+    'letter-spacing':'0.05em'}));
+
+  // Corner stakes
+  stakeBox(svg,TL.x,TL.y,'245,158,11'); // TL amber
+  stakeBox(svg,TR.x,TR.y,'56,189,248'); // TR sky (pivot)
+  stakeBox(svg,BR.x,BR.y,'74,222,128'); // BR green
+  stakeBox(svg,BL.x,BL.y,'100,116,139'); // BL grey
+
+  // Corner labels
+  svg.appendChild(svgT(TL.x-14,TL.y,'TL',{fill:'rgba(245,158,11,.85)','font-size':'8.5',
+    'font-weight':'700','text-anchor':'end'}));
+  svg.appendChild(svgT(TR.x+14,TR.y,'TR',{fill:'rgba(56,189,248,.7)','font-size':'8.5',
+    'font-weight':'700','text-anchor':'start'}));
+  svg.appendChild(svgT(BR.x+14,BR.y,'BR',{fill:'rgba(74,222,128,.85)','font-size':'8.5',
+    'font-weight':'700','text-anchor':'start'}));
+  svg.appendChild(svgT(BL.x-14,BL.y,'BL',{fill:'rgba(100,116,139,.7)','font-size':'8','text-anchor':'end'}));
+
+  let hasAdj=false;
+
+  if(sw && sw.dth>0.000001){
+    hasAdj=true;
+    const dth=sw.dth;
+    const tooLong=sw.tooLong;
+
+    // ── Option 1: TL swings around TR, arc shown AT TL ──
+    // TL is at angle π from TR. Pivot = TR.
+    // IN (too long): TL arcs downward (angle decreases from π toward π/2) — sweep=0 in SVG.
+    // OUT (too short): TL arcs upward (angle increases past π toward 3π/2) — sweep=1 in SVG.
+    // We draw the arc starting just beyond TL (offset outward from TL along the leg direction).
+    {
+      const baseAngle = Math.PI; // TL relative to TR
+      const span = 0.30;        // visual arc span in radians
+      const gap  = 0.08;        // start gap past TL stake
+      // IN: arc goes from baseAngle-gap downward (decreasing angle), so a1 > a2
+      const a1_TL = tooLong ? baseAngle - gap : baseAngle + gap;
+      const a2_TL = tooLong ? baseAngle - gap - span : baseAngle + gap + span;
+      const ax1 = TR.x + rw * Math.cos(a1_TL);
+      const ay1 = TR.y + rw * Math.sin(a1_TL);
+      const ax2 = TR.x + rw * Math.cos(a2_TL);
+      const ay2 = TR.y + rw * Math.sin(a2_TL);
+      // SVG arc: sweep=0 means counter-clockwise (decreasing angle), sweep=1 clockwise
+      const sweep_TL = tooLong ? 0 : 1;
+      svg.appendChild(svgP(`M${ax1},${ay1} A${rw},${rw} 0 0,${sweep_TL} ${ax2},${ay2}`,
+        {fill:'none',stroke:'#f87171','stroke-width':'2.2','marker-end':'url(#ah-red)'}));
+      // Tick at start (at TL stake)
+      const tn=5, na=-Math.sin(a1_TL)*tn, nb=Math.cos(a1_TL)*tn;
+      svg.appendChild(svgL(ax1-na,ay1-nb,ax1+na,ay1+nb,{stroke:'#f87171','stroke-width':'1.8'}));
+      // Label beyond arrowhead
+      const labAngle = a2_TL;
+      const lx_TL = TR.x + rw * Math.cos(labAngle) - 14;
+      const ly_TL = TR.y + rw * Math.sin(labAngle) + (tooLong ? 10 : -10);
+      svg.appendChild(svgT(lx_TL, ly_TL, tooLong?'\u25BC IN':'\u25B2 OUT',
+        {fill:'#f87171','font-size':'9','font-weight':'700','text-anchor':'end'}));
+    }
+
+    // ── Option 2: BR swings around TR, arc shown AT BR ──
+    // BR is at angle π/2 from TR. Pivot = TR.
+    // IN (too long): BR arcs leftward (angle increases from π/2 toward π) — sweep=1 in SVG.
+    // OUT (too short): BR arcs rightward (angle decreases from π/2 toward 0) — sweep=0.
+    {
+      const baseAngle = Math.PI/2; // BR relative to TR
+      const span = 0.30;
+      const gap  = 0.08;
+      const a1_BR = tooLong ? baseAngle + gap : baseAngle - gap;
+      const a2_BR = tooLong ? baseAngle + gap + span : baseAngle - gap - span;
+      const ax1 = TR.x + rh * Math.cos(a1_BR);
+      const ay1 = TR.y + rh * Math.sin(a1_BR);
+      const ax2 = TR.x + rh * Math.cos(a2_BR);
+      const ay2 = TR.y + rh * Math.sin(a2_BR);
+      const sweep_BR = tooLong ? 1 : 0;
+      svg.appendChild(svgP(`M${ax1},${ay1} A${rh},${rh} 0 0,${sweep_BR} ${ax2},${ay2}`,
+        {fill:'none',stroke:'#f87171','stroke-width':'2.2','marker-end':'url(#ah-red)'}));
+      const tn=5, na=-Math.sin(a1_BR)*tn, nb=Math.cos(a1_BR)*tn;
+      svg.appendChild(svgL(ax1-na,ay1-nb,ax1+na,ay1+nb,{stroke:'#f87171','stroke-width':'1.8'}));
+      // Label beyond arrowhead — to right of BR stake
+      const lx_BR = TR.x + rh * Math.cos(a2_BR) + 14;
+      const ly_BR = TR.y + rh * Math.sin(a2_BR) + (tooLong ? 0 : 10);
+      svg.appendChild(svgT(lx_BR, ly_BR, tooLong?'\u25C4 IN':'OUT \u25BA',
+        {fill:'#f87171','font-size':'9','font-weight':'700','text-anchor':'start'}));
+    }
+  }
+
+  $('diag-legend').innerHTML=
+    '<div class="leg-item"><div class="leg-dot" style="background:#f59e0b"></div>Side A (TL→TR)</div>'+
+    '<div class="leg-item"><div class="leg-dot" style="background:#4ade80"></div>Side B (TR→BR)</div>'+
+    '<div class="leg-item"><div class="leg-dot" style="background:#38bdf8;opacity:.55"></div>Diagonal C</div>'+
+    (hasAdj?'<div class="leg-item"><div class="leg-dot" style="background:#f87171"></div>Swing arcs</div>':'');
+}
+
+// ── Input / live calc ────────────────────────────────────────────
+function onInput(){
+  ['a_ft','a_in','b_ft','b_in','c_ft','c_in','c_16'].forEach(id=>{
+    const el=$(id);el.value.trim()!==''?el.classList.add('has-value'):el.classList.remove('has-value');
+  });
+  clearErr();
+  const hA=hasVal('a'),hB=hasVal('b'),hC=hasVal('c');
+  let A=hA?getVal('a'):null,B=hB?getVal('b'):null,C1=hC?getVal('c'):null;
+
+  if(!hA&&hB&&hC){if(C1>0&&B>0&&C1>B){const v=Math.sqrt(C1*C1-B*B);showT('a',v,'√(C²−B²) = '+v.toFixed(6)+' ft');A=v;}else hideT('a');}else hideT('a');
+  if(hA&&!hB&&hC){if(C1>0&&A>0&&C1>A){const v=Math.sqrt(C1*C1-A*A);showT('b',v,'√(C²−A²) = '+v.toFixed(6)+' ft');B=v;}else hideT('b');}else hideT('b');
+  if(hA&&hB&&!hC){if(A>0&&B>0){const v=Math.sqrt(A*A+B*B);showT('c',v,'√(A²+B²) = '+v.toFixed(6)+' ft');C1=v;}else hideT('c');}else hideT('c');
+
+  // Range guard ±30%
+  if(A>0&&B>0&&hC&&C1>0){
+    const Cp=Math.sqrt(A*A+B*B);
+    if(Math.abs(C1-Cp)/Cp>0.30){
+      showErr('\u26A0 Diagonal is more than 30% off the theoretical value of '+fmt(Cp)+'. Please recheck.');
+      drawDiagram(A,B,null);
+      $('result-card').classList.remove('show');$('math-wrap').classList.remove('show');return;
+    }
+  }
+
+  let sw=null;
+  if(A>0&&B>0&&C1>0&&C1>Math.max(A,B)) sw=computeSwing(A,B,C1);
+  drawDiagram(A,B,sw);
+  if(sw) runCheck(A,B,C1,sw);
+  else{$('result-card').classList.remove('show');$('math-wrap').classList.remove('show');}
+}
+
+function showT(k,v,f){
+  $('theory-'+k+'-val').textContent=fmt(v);
+  $('theory-'+k+'-sub').textContent=f+'  ·  '+fmtIn(v)+' total';
+  $('theory-'+k).classList.add('show');$('badge-'+k).classList.add('show');$('row-'+k).classList.add('derived');
+}
+function hideT(k){
+  $('theory-'+k).classList.remove('show');$('badge-'+k).classList.remove('show');$('row-'+k).classList.remove('derived');
+}
+
+function runCheck(A,B,C1,sw){
+  const{Cp,moveA,moveB,tooLong,dth}=sw;
+  const tol=1/192;
+  const perfect=moveA<tol;
+
+  $('result-card').classList.add('show');
+  $('res-status').innerHTML=perfect
+    ?'<div class="status-pip ok"></div><div><div class="status-text">Rectangle is Square</div><div class="status-sub">No adjustment needed</div></div>'
+    :'<div class="status-pip err"></div><div><div class="status-text">Out of Square — TR stays fixed</div><div class="status-sub">Choose TL or BR stake to move</div></div>';
+
+  const swingWord = tooLong ? 'SWING IN' : 'SWING OUT';
+  const swingClass = tooLong ? 'in' : 'out';
+  // TL direction detail
+  const tlDetail = tooLong
+    ? 'Close angle at TR \u2014 TL arcs down'
+    : 'Open angle at TR \u2014 TL arcs up';
+  // BR direction detail
+  const brDetail = tooLong
+    ? 'Close angle at TR \u2014 BR arcs left'
+    : 'Open angle at TR \u2014 BR arcs right';
+
+  function fill(prefix,move,detail){
+    const d=$(prefix+'-dist'),dr=$(prefix+'-dir'),dc=$(prefix+'-dec');
+    if(perfect){
+      d.className='opt-distance ok';d.textContent='SQUARE';
+      dr.className='opt-dir ok';dr.textContent='No move needed';dc.textContent='';
+    } else {
+      d.className='opt-distance';d.textContent=fmtIn(move);
+      dr.className='opt-dir '+swingClass;dr.textContent=swingWord;
+      dc.textContent=detail+'\n'+(move*12).toFixed(5)+'" · '+move.toFixed(7)+' ft';
+    }
+  }
+
+  fill('o1',moveA,tlDetail);
+  fill('o2',moveB,brDetail);
+
+  const de=(C1-Cp)*12;
+  $('res-stats').innerHTML=
+    '<div class="stat"><div class="stat-label">Perfect Diagonal</div><div class="stat-val sky">'+fmt(Cp)+'</div></div>'+
+    '<div class="stat"><div class="stat-label">Measured Diagonal</div><div class="stat-val">'+fmt(C1)+'</div></div>'+
+    '<div class="stat"><div class="stat-label">Diagonal Error</div><div class="stat-val amber">'+fmtIn(Math.abs(de)/12)+(de>0?' long':' short')+'</div></div>'+
+    '<div class="stat"><div class="stat-label">Swing angle Δθ</div><div class="stat-val">'+(dth*180/Math.PI).toFixed(6)+'°</div></div>';
+
+  $('math-wrap').classList.add('show');
+  $('math-body').innerHTML=
+    '<div class="step"><div class="step-lbl">① Perfect diagonal C = √(A²+B²)</div><div class="step-eq">'+
+    'C = √('+A.toFixed(4)+'²+'+B.toFixed(4)+'²)<br>'+
+    '<span class="ra">C = '+Cp.toFixed(8)+' ft = '+fmt(Cp)+'</span></div></div>'+
+
+    '<div class="step"><div class="step-lbl">② Diagonal error</div><div class="step-eq">'+
+    'Error = C_meas − C_perfect<br>'+
+    '      = '+C1.toFixed(8)+' − '+Cp.toFixed(8)+'<br>'+
+    '<span class="ra">      = '+((C1-Cp)*12).toFixed(6)+'"  '+(C1>Cp?'(too long → swing IN)':'(too short → swing OUT)')+'</span></div></div>'+
+
+    '<div class="step"><div class="step-lbl">③ Swing angle Δθ (Law of Cosines at TR)</div><div class="step-eq">'+
+    'When a leg of radius r swings by Δθ around TR,<br>'+
+    'the diagonal changes:<br>'+
+    'C_new² = Cp² − 2AB·sin(Δθ)  [closing angle]<br>'+
+    'sin(Δθ) = |C_meas²−Cp²| / (2AB)<br>'+
+    'sin(Δθ) = '+Math.abs(C1*C1-Cp*Cp).toFixed(6)+' / '+( 2*A*B)+'<br>'+
+    '<span class="ra">sin(Δθ) = '+(Math.abs(C1*C1-Cp*Cp)/(2*A*B)).toFixed(8)+'</span><br>'+
+    '<span class="ra">Δθ = '+(dth*180/Math.PI).toFixed(6)+'°</span></div></div>'+
+
+    '<div class="step"><div class="step-lbl">④ Stake move = chord = 2r·sin(Δθ/2)</div><div class="step-eq">'+
+    'Option 1 — TL swings on Side A  (r = A = '+A+' ft):<br>'+
+    '  chord = 2·'+A+'·sin('+(dth/2*180/Math.PI).toFixed(6)+'°)<br>'+
+    '<span class="ra">  = '+moveA.toFixed(8)+' ft = '+fmtIn(moveA)+'  ['+tlDetail+']</span><br><br>'+
+    'Option 2 — BR swings on Side B  (r = B = '+B+' ft):<br>'+
+    '  chord = 2·'+B+'·sin('+(dth/2*180/Math.PI).toFixed(6)+'°)<br>'+
+    '<span class="rg">  = '+moveB.toFixed(8)+' ft = '+fmtIn(moveB)+'  ['+brDetail+']</span></div></div>';
+}
+
+function calculate(){
+  clearErr();
+  if([hasVal('a'),hasVal('b'),hasVal('c')].filter(Boolean).length<2){
+    showErr('Enter at least two values to calculate the third.');return;
+  }
+  onInput();
+}
+function clearAll(){
+  ['a_ft','a_in','b_ft','b_in','c_ft','c_in','c_16'].forEach(id=>{$(id).value='';$(id).classList.remove('has-value');});
+  ['a','b','c'].forEach(k=>{hideT(k);$('row-'+k).classList.remove('derived');});
+  $('result-card').classList.remove('show');$('math-wrap').classList.remove('show');
+  clearErr();
+  const svg=$('diag-svg');while(svg.firstChild)svg.removeChild(svg.firstChild);
+  svg.appendChild(svgT(SW/2,SH/2,'Enter values above to see scaled diagram',{fill:'#2a4a6a','font-size':'11'}));
+  $('diag-legend').innerHTML='';
+}
+function showErr(m){$('err-msg').textContent=m;$('err-msg').classList.add('show');}
+function clearErr(){$('err-msg').classList.remove('show');}
+function toggleMath(){const b=$('math-body');const o=b.classList.toggle('open');$('chev').textContent=o?'▲':'▼';}
+document.addEventListener('keydown',e=>{if(e.key==='Enter')calculate();});
+
+(()=>{
+  const svg=$('diag-svg');
+  svg.appendChild(svgT(SW/2,SH/2,'Enter values above to see scaled diagram',{fill:'#2a4a6a','font-size':'11'}));
+})();
+</script>
+</body>
+</html>
