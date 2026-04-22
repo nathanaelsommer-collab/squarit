@@ -1,3 +1,10 @@
+<link rel="manifest" href="manifest.json">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+<link rel="apple-touch-icon" href="icon.png">
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -711,3 +718,9 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter')calculate();});
 </script>
 </body>
 </html>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+</script>
