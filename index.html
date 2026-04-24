@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -13,8 +14,8 @@
 <style>
 :root{
   --bg:#08111e;--surface:#0f1e30;--panel:#132030;--border:#1a3050;--border2:#204060;
-  --amber:#f59e0b;--sky:#38bdf8;--green:#4ade80;--red:#f87171;
-  --text:#dde8f5;--muted:#dddddd;--muted2:#dddddd;
+  --amber:#f59e0b;--sky:#ffffff;--green:#ffffff;--red:#f87171;
+  --text:#ffffff;--muted:#dddddd;--muted2:#bbbbbb;
   --mono:'DM Mono',monospace;--disp:'Bebas Neue',sans-serif;--sans:'DM Sans',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -146,7 +147,7 @@ footer{text-align:center;padding:20px 20px 0;font-size:10px;color:var(--muted2);
 
 <div class="section-label">Live Scale Diagram</div>
 <div class="diagram-wrap">
-  <svg id="diag-svg" viewBox="0 0 360 250" xmlns="http://www.w3.org/2000/svg"></svg>
+  <svg id="diag-svg" viewBox="0 0 360 310" xmlns="http://www.w3.org/2000/svg"></svg>
   <div class="diag-legend" id="diag-legend"></div>
 </div>
 
@@ -211,33 +212,36 @@ footer{text-align:center;padding:20px 20px 0;font-size:10px;color:var(--muted2);
   <div class="result-card" id="result-card">
     <div class="result-status" id="res-status"></div>
 
-    <div class="pivot-note">
-      <div class="pivot-note-lbl">⊙ Pivot = TR stake (stays fixed)</div>
-      <div class="pivot-note-txt">TR is the shared pivot for both options. Choose which diagonal-end stake to move — TL or BR — by swinging its leg like a compass arc.</div>
-    </div>
+```
+<div class="pivot-note">
+  <div class="pivot-note-lbl">⊙ Pivot = TR stake (stays fixed)</div>
+  <div class="pivot-note-txt">TR is the shared pivot for both options. Choose which diagonal-end stake to move — TL or BR — by swinging its leg like a compass arc.</div>
+</div>
 
-    <div class="opt-grid">
-      <!-- Option 1: TL stake, swing Side A around TR -->
-      <div class="opt-cell">
-        <div class="opt-num">Option 1</div>
-        <div class="opt-stake tl">▸ Move TL Stake</div>
-        <div class="opt-leg">Swing Side A around TR<br>Radius = Side A length</div>
-        <div class="opt-distance" id="o1-dist">—</div>
-        <div class="opt-dir" id="o1-dir"></div>
-        <div class="opt-dec" id="o1-dec"></div>
-      </div>
-      <!-- Option 2: BR stake, swing Side B around TR -->
-      <div class="opt-cell">
-        <div class="opt-num">Option 2</div>
-        <div class="opt-stake br">▸ Move BR Stake</div>
-        <div class="opt-leg">Swing Side B around TR<br>Radius = Side B length</div>
-        <div class="opt-distance" id="o2-dist">—</div>
-        <div class="opt-dir" id="o2-dir"></div>
-        <div class="opt-dec" id="o2-dec"></div>
-      </div>
-    </div>
+<div class="opt-grid">
+  <!-- Option 1: TL stake, swing Side A around TR -->
+  <div class="opt-cell">
+    <div class="opt-num">Option 1</div>
+    <div class="opt-stake tl">▸ Move TL Stake</div>
+    <div class="opt-leg">Swing Side A around TR<br>Radius = Side A length</div>
+    <div class="opt-distance" id="o1-dist">—</div>
+    <div class="opt-dir" id="o1-dir"></div>
+    <div class="opt-dec" id="o1-dec"></div>
+  </div>
+  <!-- Option 2: BR stake, swing Side B around TR -->
+  <div class="opt-cell">
+    <div class="opt-num">Option 2</div>
+    <div class="opt-stake br">▸ Move BR Stake</div>
+    <div class="opt-leg">Swing Side B around TR<br>Radius = Side B length</div>
+    <div class="opt-distance" id="o2-dist">—</div>
+    <div class="opt-dir" id="o2-dir"></div>
+    <div class="opt-dec" id="o2-dec"></div>
+  </div>
+</div>
 
-    <div class="stats-grid" id="res-stats"></div>
+<div class="stats-grid" id="res-stats"></div>
+```
+
   </div>
 </div>
 
@@ -344,8 +348,8 @@ function computeSwing(A,B,C1){
 //   "IN" (too long): BR swings toward TL → counter-clockwise → angle toward π
 //   "OUT" (too short): BR swings away from TL → clockwise → angle toward 0
 
-const SW=360,SH=250;
-const M={t:36,r:56,b:20,l:32};
+const SW=360,SH=310;
+const M={t:52,r:56,b:20,l:32};
 
 function nsel(tag,at){
   const el=document.createElementNS('http://www.w3.org/2000/svg',tag);
@@ -709,5 +713,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter')calculate();});
   svg.appendChild(svgT(SW/2,SH/2,'Enter values above to see scaled diagram',{fill:'#2a4a6a','font-size':'11'}));
 })();
 </script>
+
 </body>
 </html>
+
