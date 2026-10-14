@@ -326,7 +326,8 @@ function computeSwing(A,B,C1){
     dth,
     moveA: 2*A*Math.sin(dth/2),   // Option 1: TL moves, radius=A
     moveB: 2*B*Math.sin(dth/2),   // Option 2: BR moves, radius=B
-    tooLong: C1>Cp
+    tooLong: C1>Cp,
+    C1                            // measured diagonal (for true-shape drawing)
   };
 }
 
@@ -442,11 +443,26 @@ function drawDiagram(A,B,sw){
   const rw=A*scale, rh=B*scale;
   const ox=M.l+(DW-rw)/2, oy=M.t+(DH-rh)/2;
 
-  // Named corner pixel positions
+  // Perfect-rectangle corners (dim reference)
   const TL={x:ox,      y:oy};
   const TR={x:ox+rw,   y:oy};
-  const BR={x:ox+rw,   y:oy+rh};
+  const BRp={x:ox+rw,  y:oy+rh};
   const BL={x:ox,      y:oy+rh};
+
+  // True measured BR from sides A, B and the MEASURED diagonal C1
+  // (law of cosines). Falls back to the perfect corner when square.
+  const offSq = sw && sw.dth>0.000001 && isFinite(sw.C1);
+  let BR={x:BRp.x, y:BRp.y}, angTR=Math.PI/2, angDeg=90;
+  if(offSq){
+    const C1=sw.C1;
+    const bx=(A*A+C1*C1-B*B)/(2*A), by2=C1*C1-bx*bx;
+    if(bx>0 && by2>0){
+      BR={x:ox+bx*scale, y:oy+Math.sqrt(by2)*scale};
+      angTR=Math.atan2(BR.y-TR.y, BR.x-TR.x);
+      const c=Math.min(1,Math.max(-1,(A*A+B*B-C1*C1)/(2*A*B)));
+      angDeg=Math.acos(c)*180/Math.PI;
+    }
+  }
 
   // Grid
   for(let i=1;i<4;i++) svg.appendChild(svgL(ox+rw*i/4,oy,ox+rw*i/4,oy+rh,
@@ -454,35 +470,48 @@ function drawDiagram(A,B,sw){
   for(let i=1;i<3;i++) svg.appendChild(svgL(ox,oy+rh*i/3,ox+rw,oy+rh*i/3,
     {stroke:'rgba(56,189,248,.05)','stroke-width':'1'}));
 
-  // Rectangle fill + dim border
+  // Perfect rectangle as dim dashed reference
   svg.appendChild(svgR(ox,oy,rw,rh,{fill:'rgba(56,189,248,.03)',stroke:'#1a3050',
     'stroke-width':'1.2','stroke-dasharray':'4,3',rx:'2'}));
 
   // Left and bottom sides (dim)
   svg.appendChild(svgL(TL.x,TL.y,BL.x,BL.y,{stroke:'#1e3450','stroke-width':'1.5'}));
-  svg.appendChild(svgL(BL.x,BL.y,BR.x,BR.y,{stroke:'#1e3450','stroke-width':'1.5'}));
+  svg.appendChild(svgL(BL.x,BL.y,BRp.x,BRp.y,{stroke:'#1e3450','stroke-width':'1.5'}));
 
   // Side A — amber (TL to TR)
   svg.appendChild(svgL(TL.x,TL.y,TR.x,TR.y,{stroke:'#f59e0b','stroke-width':'2.5'}));
   svg.appendChild(svgT((TL.x+TR.x)/2,TL.y-16,'A = '+fmt(A),{fill:'#f59e0b','font-size':'9.5'}));
 
-  // Side B — green (TR to BR)
+  // Side B — green (TR to TRUE measured BR)
   svg.appendChild(svgL(TR.x,TR.y,BR.x,BR.y,{stroke:'#4ade80','stroke-width':'2.5'}));
-  svg.appendChild(svgT(TR.x+6,(TR.y+BR.y)/2,'B = '+fmt(B),
+  svg.appendChild(svgT((TR.x+BR.x)/2+8,(TR.y+BR.y)/2,'B = '+fmt(B),
     {fill:'#4ade80','font-size':'9.5','text-anchor':'start'}));
 
-  // Diagonal TL→BR — dashed sky
+  // Diagonal TL→true BR — dashed sky, labeled with the MEASURED diagonal
+  const cShow = offSq ? sw.C1 : (sw ? sw.Cp : Math.sqrt(A*A+B*B));
   svg.appendChild(svgL(TL.x,TL.y,BR.x,BR.y,{stroke:'#38bdf8','stroke-width':'1.5',
     'stroke-dasharray':'6,3',opacity:'.55'}));
   const da=Math.atan2(BR.y-TL.y,BR.x-TL.x)*180/Math.PI;
   const cmx=(TL.x+BR.x)/2-10, cmy=(TL.y+BR.y)/2-10;
-  svg.appendChild(svgT(cmx,cmy,'C = '+fmt(sw?sw.Cp:Math.sqrt(A*A+B*B)),
+  svg.appendChild(svgT(cmx,cmy,'C = '+fmt(cShow),
     {fill:'#38bdf8','font-size':'9',transform:`rotate(${da},${cmx},${cmy})`}));
 
-  // Right-angle mark at TL
-  const cs=10;
-  svg.appendChild(svgL(TL.x+cs,TL.y,TL.x+cs,TL.y+cs,{stroke:'rgba(56,189,248,.45)','stroke-width':'1'}));
-  svg.appendChild(svgL(TL.x,TL.y+cs,TL.x+cs,TL.y+cs,{stroke:'rgba(56,189,248,.45)','stroke-width':'1'}));
+  if(offSq){
+    // Measured angle at TR between the two sides
+    const ar=26, a1=Math.PI, a2=angTR;
+    const sx=TR.x+ar*Math.cos(a1), sy=TR.y+ar*Math.sin(a1);
+    const ex=TR.x+ar*Math.cos(a2), ey=TR.y+ar*Math.sin(a2);
+    svg.appendChild(svgP(`M${sx},${sy} A${ar},${ar} 0 0,${a2<Math.PI?0:1} ${ex},${ey}`,
+      {fill:'none',stroke:'rgba(245,158,11,.7)','stroke-width':'1.5'}));
+    const mid=(a1+a2)/2;
+    svg.appendChild(svgT(TR.x+46*Math.cos(mid), TR.y+46*Math.sin(mid),
+      angDeg.toFixed(1)+'\u00B0',{fill:'#f59e0b','font-size':'9'}));
+  } else {
+    // Right-angle mark at TL (square state)
+    const cs=10;
+    svg.appendChild(svgL(TL.x+cs,TL.y,TL.x+cs,TL.y+cs,{stroke:'rgba(56,189,248,.45)','stroke-width':'1'}));
+    svg.appendChild(svgL(TL.x,TL.y+cs,TL.x+cs,TL.y+cs,{stroke:'rgba(56,189,248,.45)','stroke-width':'1'}));
+  }
 
   // Pivot indicator at TR — bright ring
   svg.appendChild(nsel('circle',{cx:TR.x,cy:TR.y,r:'8',fill:'none',
@@ -490,7 +519,7 @@ function drawDiagram(A,B,sw){
   svg.appendChild(svgT(TR.x,TR.y-18,'PIVOT',{fill:'rgba(56,189,248,.6)','font-size':'8',
     'letter-spacing':'0.05em'}));
 
-  // Corner stakes
+  // Corner stakes (BR at its true measured spot)
   stakeBox(svg,TL.x,TL.y,'245,158,11'); // TL amber
   stakeBox(svg,TR.x,TR.y,'56,189,248'); // TR sky (pivot)
   stakeBox(svg,BR.x,BR.y,'74,222,128'); // BR green
@@ -513,29 +542,21 @@ function drawDiagram(A,B,sw){
     const tooLong=sw.tooLong;
 
     // ── Option 1: TL swings around TR, arc shown AT TL ──
-    // TL is at angle π from TR. Pivot = TR.
-    // IN (too long): TL arcs downward (angle decreases from π toward π/2) — sweep=0 in SVG.
-    // OUT (too short): TL arcs upward (angle increases past π toward 3π/2) — sweep=1 in SVG.
-    // We draw the arc starting just beyond TL (offset outward from TL along the leg direction).
     {
       const baseAngle = Math.PI; // TL relative to TR
-      const span = 0.30;        // visual arc span in radians
-      const gap  = 0.08;        // start gap past TL stake
-      // IN: arc goes from baseAngle-gap downward (decreasing angle), so a1 > a2
+      const span = 0.30;
+      const gap  = 0.08;
       const a1_TL = tooLong ? baseAngle - gap : baseAngle + gap;
       const a2_TL = tooLong ? baseAngle - gap - span : baseAngle + gap + span;
       const ax1 = TR.x + rw * Math.cos(a1_TL);
       const ay1 = TR.y + rw * Math.sin(a1_TL);
       const ax2 = TR.x + rw * Math.cos(a2_TL);
       const ay2 = TR.y + rw * Math.sin(a2_TL);
-      // SVG arc: sweep=0 means counter-clockwise (decreasing angle), sweep=1 clockwise
       const sweep_TL = tooLong ? 0 : 1;
       svg.appendChild(svgP(`M${ax1},${ay1} A${rw},${rw} 0 0,${sweep_TL} ${ax2},${ay2}`,
         {fill:'none',stroke:'#f87171','stroke-width':'2.2','marker-end':'url(#ah-red)'}));
-      // Tick at start (at TL stake)
       const tn=5, na=-Math.sin(a1_TL)*tn, nb=Math.cos(a1_TL)*tn;
       svg.appendChild(svgL(ax1-na,ay1-nb,ax1+na,ay1+nb,{stroke:'#f87171','stroke-width':'1.8'}));
-      // Label beyond arrowhead
       const labAngle = a2_TL;
       const lx_TL = TR.x + rw * Math.cos(labAngle) - 14;
       const ly_TL = TR.y + rw * Math.sin(labAngle) + (tooLong ? 10 : -10);
@@ -543,12 +564,9 @@ function drawDiagram(A,B,sw){
         {fill:'#f87171','font-size':'9','font-weight':'700','text-anchor':'end'}));
     }
 
-    // ── Option 2: BR swings around TR, arc shown AT BR ──
-    // BR is at angle π/2 from TR. Pivot = TR.
-    // IN (too long): BR arcs leftward (angle increases from π/2 toward π) — sweep=1 in SVG.
-    // OUT (too short): BR arcs rightward (angle decreases from π/2 toward 0) — sweep=0.
+    // ── Option 2: BR swings around TR, arc shown AT true BR ──
     {
-      const baseAngle = Math.PI/2; // BR relative to TR
+      const baseAngle = angTR; // true measured BR direction from TR
       const span = 0.30;
       const gap  = 0.08;
       const a1_BR = tooLong ? baseAngle + gap : baseAngle - gap;
@@ -562,7 +580,6 @@ function drawDiagram(A,B,sw){
         {fill:'none',stroke:'#f87171','stroke-width':'2.2','marker-end':'url(#ah-red)'}));
       const tn=5, na=-Math.sin(a1_BR)*tn, nb=Math.cos(a1_BR)*tn;
       svg.appendChild(svgL(ax1-na,ay1-nb,ax1+na,ay1+nb,{stroke:'#f87171','stroke-width':'1.8'}));
-      // Label beyond arrowhead — to right of BR stake
       const lx_BR = TR.x + rh * Math.cos(a2_BR) + 14;
       const ly_BR = TR.y + rh * Math.sin(a2_BR) + (tooLong ? 0 : 10);
       svg.appendChild(svgT(lx_BR, ly_BR, tooLong?'\u25C4 IN':'OUT \u25BA',
