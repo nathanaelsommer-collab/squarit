@@ -1,0 +1,1 @@
+{"background_color":"#08111e","description":"Pythagorean field calculator for squaring up layouts. Works offline.","display":"standalone","icons":[{"sizes":"83x87","src":"icon.PNG","type":"image/png"}],"name":"SquarIt","orientation":"portrait","scope":"./","short_name":"SquarIt","start_url":"./index.html","theme_color":"#08111e"}

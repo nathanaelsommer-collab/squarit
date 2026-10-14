@@ -8,6 +8,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SquarIt">
 <meta name="theme-color" content="#08111e">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.PNG">
 <title>SQUAR-IT</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -714,6 +716,13 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter')calculate();});
 })();
 </script>
 
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("service-worker.js");
+  });
+}
+</script>
 </body>
 </html>
 
