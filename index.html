@@ -578,6 +578,9 @@ function drawDiagram(A,B,sw){
 }
 
 // ── Input / live calc ────────────────────────────────────────────
+// Demo shown before any input: classic 3-4-5 at 30-40-50 ft
+const DEF_A=30, DEF_B=40;
+function drawDefault(){ drawDiagram(DEF_A, DEF_B, null); }
 function onInput(){
   ['a_ft','a_in','b_ft','b_in','c_ft','c_in','c_16'].forEach(id=>{
     const el=$(id);el.value.trim()!==''?el.classList.add('has-value'):el.classList.remove('has-value');
@@ -602,7 +605,8 @@ function onInput(){
 
   let sw=null;
   if(A>0&&B>0&&C1>0&&C1>Math.max(A,B)) sw=computeSwing(A,B,C1);
-  drawDiagram(A,B,sw);
+  if(!hA&&!hB&&!hC){ drawDefault(); }
+  else drawDiagram(A,B,sw);
   if(sw) runCheck(A,B,C1,sw);
   else{$('result-card').classList.remove('show');$('math-wrap').classList.remove('show');}
 }
@@ -700,19 +704,14 @@ function clearAll(){
   ['a','b','c'].forEach(k=>{hideT(k);$('row-'+k).classList.remove('derived');});
   $('result-card').classList.remove('show');$('math-wrap').classList.remove('show');
   clearErr();
-  const svg=$('diag-svg');while(svg.firstChild)svg.removeChild(svg.firstChild);
-  svg.appendChild(svgT(SW/2,SH/2,'Enter values above to see scaled diagram',{fill:'#2a4a6a','font-size':'11'}));
-  $('diag-legend').innerHTML='';
+  drawDefault();
 }
 function showErr(m){$('err-msg').textContent=m;$('err-msg').classList.add('show');}
 function clearErr(){$('err-msg').classList.remove('show');}
 function toggleMath(){const b=$('math-body');const o=b.classList.toggle('open');$('chev').textContent=o?'▲':'▼';}
 document.addEventListener('keydown',e=>{if(e.key==='Enter')calculate();});
 
-(()=>{
-  const svg=$('diag-svg');
-  svg.appendChild(svgT(SW/2,SH/2,'Enter values above to see scaled diagram',{fill:'#2a4a6a','font-size':'11'}));
-})();
+(()=>{ drawDefault(); })();
 </script>
 
 <script>
