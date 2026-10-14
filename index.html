@@ -578,9 +578,14 @@ function drawDiagram(A,B,sw){
 }
 
 // ── Input / live calc ────────────────────────────────────────────
-// Demo shown before any input: classic 3-4-5 at 30-40-50 ft
-const DEF_A=30, DEF_B=40;
+// Default demo values: classic 3-4-5 at 30-40-50 ft
+const DEF_A=30, DEF_B=40, DEF_C=50;
 function drawDefault(){ drawDiagram(DEF_A, DEF_B, null); }
+function setDefaults(){
+  $('a_ft').value=DEF_A; $('a_in').value='';
+  $('b_ft').value=DEF_B; $('b_in').value='';
+  $('c_ft').value=DEF_C; $('c_in').value=''; $('c_16').value='';
+}
 function onInput(){
   ['a_ft','a_in','b_ft','b_in','c_ft','c_in','c_16'].forEach(id=>{
     const el=$(id);el.value.trim()!==''?el.classList.add('has-value'):el.classList.remove('has-value');
@@ -700,18 +705,15 @@ function calculate(){
   onInput();
 }
 function clearAll(){
-  ['a_ft','a_in','b_ft','b_in','c_ft','c_in','c_16'].forEach(id=>{$(id).value='';$(id).classList.remove('has-value');});
-  ['a','b','c'].forEach(k=>{hideT(k);$('row-'+k).classList.remove('derived');});
-  $('result-card').classList.remove('show');$('math-wrap').classList.remove('show');
-  clearErr();
-  drawDefault();
+  setDefaults();
+  onInput();
 }
 function showErr(m){$('err-msg').textContent=m;$('err-msg').classList.add('show');}
 function clearErr(){$('err-msg').classList.remove('show');}
 function toggleMath(){const b=$('math-body');const o=b.classList.toggle('open');$('chev').textContent=o?'▲':'▼';}
 document.addEventListener('keydown',e=>{if(e.key==='Enter')calculate();});
 
-(()=>{ drawDefault(); })();
+(()=>{ setDefaults(); onInput(); })();
 </script>
 
 <script>
