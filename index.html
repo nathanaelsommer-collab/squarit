@@ -615,11 +615,11 @@ function onInput(){
   if(hA&&!hB&&hC){if(C1>0&&A>0&&C1>A){const v=Math.sqrt(C1*C1-A*A);showT('b',v,'√(C²−A²) = '+v.toFixed(6)+' ft');B=v;}else hideT('b');}else hideT('b');
   if(hA&&hB&&!hC){if(A>0&&B>0){const v=Math.sqrt(A*A+B*B);showT('c',v,'√(A²+B²) = '+v.toFixed(6)+' ft');C1=v;}else hideT('c');}else hideT('c');
 
-  // Range guard ±30%
+  // Range guard ±50%
   if(A>0&&B>0&&hC&&C1>0){
     const Cp=Math.sqrt(A*A+B*B);
-    if(Math.abs(C1-Cp)/Cp>0.30){
-      showErr('\u26A0 Diagonal is more than 30% off the theoretical value of '+fmt(Cp)+'. Please recheck.');
+    if(Math.abs(C1-Cp)/Cp>0.50){
+      showErr('\u26A0 Diagonal is more than 50% off the theoretical value of '+fmt(Cp)+'. Please recheck.');
       drawDiagram(A,B,null);
       $('result-card').classList.remove('show');$('math-wrap').classList.remove('show');return;
     }
